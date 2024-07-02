@@ -1,78 +1,40 @@
+// Copyright The Notary Project Authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"github.com/AliyunContainerService/notation-alibabacloud-secret-manager/internal/version"
-	"github.com/notaryproject/notation-go/plugin/proto"
 	"os"
+
+	"github.com/notaryproject/notation-plugin-framework-go/cli"
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		help()
-		return
-	}
 	ctx := context.Background()
-	var err error
-	var resp any
-	switch proto.Command(os.Args[1]) {
-	case proto.CommandGetMetadata:
-		resp = runGetMetadata()
-	case proto.CommandDescribeKey:
-		resp, err = runDescribeKey(ctx, os.Stdin)
-	case proto.CommandGenerateSignature:
-		resp, err = runSign(ctx, os.Stdin)
-	default:
-		err = fmt.Errorf("invalid command: %s", os.Args[1])
-	}
-
-	// output the response
-	if err == nil {
-		// ignore the error because the response only contains valid JSON field.
-		jsonResp, err2 := json.Marshal(resp)
-		if err2 != nil {
-			data, _ := json.Marshal(wrapError(err2))
-			os.Stderr.Write(data)
-			os.Exit(1)
-		}
-		_, err = os.Stdout.Write(jsonResp)
-	}
-
-	// output the error
+	// Initialize plugin
+	plugin, err := NewAlibabaCloudSecretManagerPlugin()
 	if err != nil {
-		data, _ := json.Marshal(wrapError(err))
-		os.Stderr.Write(data)
-		os.Exit(1)
-	}
-}
-
-func wrapError(err error) *proto.RequestError {
-	// already wrapped
-	var nerr *proto.RequestError
-	if errors.As(err, &nerr) {
-		return nerr
+		_, _ = fmt.Fprintf(os.Stderr, "failed to initialize plugin: %v\n", err)
+		os.Exit(2)
 	}
 
-	// default error code
-	code := proto.ErrorCodeGeneric
-	return &proto.RequestError{
-		Code: code,
-		Err:  err,
+	// Create executable
+	pluginCli, err := cli.New(plugin)
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "failed to create executable: %v\n", err)
+		os.Exit(3)
 	}
-}
-
-func help() {
-	fmt.Printf(`notation-hc-vault - Notation Hashicorp Vault plugin
-Usage:
-  notation-hc-vault <command>
-Version:
-  %s
-Commands:
-  describe-key         Hashicorp vault key description
-  generate-signature   Sign artifacts with keys in Hashicorp Vault
-  get-plugin-metadata  Get plugin metadata
-`, version.GetVersion())
+	pluginCli.Execute(ctx, os.Args)
 }
