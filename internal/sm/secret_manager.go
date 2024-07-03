@@ -1,9 +1,21 @@
 package sm
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"github.com/alibabacloud-go/tea/tea"
 	dedicatedkmsopenapi "github.com/aliyun/alibabacloud-dkms-gcs-go-sdk/openapi"
 	dedicatedkmssdk "github.com/aliyun/alibabacloud-dkms-gcs-go-sdk/sdk"
+	"github.com/notaryproject/notation-plugin-framework-go/plugin"
+)
+
+const (
+	KMS_RSA_2048 = "RSA_2048"
+	KMS_RSA_3072 = "RSA_3072"
+	KMS_RSA_4096 = "RSA_4096"
+	KMS_EC_P256  = "EC_P256"
+	KMS_EC_P256K = "EC_P256K"
+	KMS_EC_SM2   = "EC_SM2"
 )
 
 func GetDkmsClientByClientKeyFile(clientKeyPath, password, endpoint string) (*dedicatedkmssdk.Client, error) {
@@ -25,4 +37,30 @@ func GetDkmsClientByClientKeyFile(clientKeyPath, password, endpoint string) (*de
 	return client, nil
 }
 
-func
+func ParseCertificates(keyStr string) ([]*x509.Certificate, error) {
+	var certs []*x509.Certificate
+	block, rest := pem.Decode([]byte(keyStr))
+	for block != nil {
+		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			return nil, err
+		}
+		certs = append(certs, cert)
+		block, rest = pem.Decode(rest)
+	}
+	return certs, nil
+}
+
+func SwitchKeySpec(kmsKeySpec string) plugin.KeySpec {
+	switch kmsKeySpec {
+	case KMS_RSA_2048:
+		return plugin.KeySpecRSA2048
+	case KMS_RSA_3072:
+		return plugin.KeySpecRSA3072
+	case KMS_RSA_4096:
+		return plugin.KeySpecRSA4096
+	case KMS_EC_P256:
+		return plugin.KeySpecEC256
+	}
+	return ""
+}
