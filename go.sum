@@ -186,10 +186,6 @@ github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjY
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
-github.com/notaryproject/notation-core-go v1.0.3 h1:FCgvULSypEFrrNgvDRdHbKAGAgbXK43n/jKD9q2WECA=
-github.com/notaryproject/notation-core-go v1.0.3/go.mod h1:eDo5/LTUp23mB7w0CckJLnl+p93oGdyiKDzzggpqTH4=
-github.com/notaryproject/notation-go v1.1.1 h1:EAY8ERBWhrdaG9MIumSZ9xyUHktgr6OkCByd75HR+FA=
-github.com/notaryproject/notation-go v1.1.1/go.mod h1:XykI2i5jHb6cGf+bcG/cIeNfNO2u4Xoy2mkuOKHjVVI=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0 h1:6Qzr7DGXoCgXEQN+1gTZWuJAZvxh3p8Lryjn5FaLzi4=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0/go.mod h1:RqWSrTOtEASCrGOEffq0n8pSg2KOgKYiWqFWczRSics=
 github.com/onsi/ginkgo/v2 v2.13.0 h1:0jY9lJquiL8fcf3M4LAXN5aMlS/b2BV86HFFPCPMgE4=
