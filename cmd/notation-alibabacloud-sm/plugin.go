@@ -42,6 +42,7 @@ type AlibabaCloudSecretManagerPlugin struct {
 func NewAlibabaCloudSecretManagerPlugin() (*AlibabaCloudSecretManagerPlugin, error) {
 	client := common.GetClientOrDie()
 	config := openapi.Config{
+		RegionId:   tea.String(sm.GetKMSRegionId()),
 		Credential: client.Credential(),
 	}
 	kmsClient, err := kms.NewClient(&config)
@@ -189,8 +190,8 @@ func (p *AlibabaCloudSecretManagerPlugin) VerifySignature(_ context.Context, req
 func (p *AlibabaCloudSecretManagerPlugin) GetMetadata(_ context.Context, _ *plugin.GetMetadataRequest) (*plugin.GetMetadataResponse, error) {
 	return &plugin.GetMetadataResponse{
 		SupportedContractVersions: []string{plugin.ContractVersion},
-		Name:                      "alibabacloud.secretmanager.notation.plugin",
-		Description:               "This is an description of example plugin",
+		Name:                      "alibabacloud.secretmanager.plugin",
+		Description:               "Alibaba Cloud Secret Manager signer plugin for Notation",
 		URL:                       "https://example.com/notation/plugin",
 		Version:                   "0.0.1",
 		Capabilities: []plugin.Capability{

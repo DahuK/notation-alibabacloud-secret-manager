@@ -9,6 +9,8 @@ const (
 	envClientKeyFile    = "ALIBABA_CLOUD_KMS_CLIENTKEY_FILEPATH"
 	envKMSPassword      = "ALIBABA_CLOUD_KMS_PASSWORD"
 	envKMSCAFile        = "ALIBABA_CLOUD_KMS_CA_FILEPATH"
+	envKMSRegionId      = "ALIBABA_CLOUD_KMS_REGION_ID"
+	defaultRegionId     = "cn-hangzhou"
 )
 
 var (
@@ -23,6 +25,9 @@ var (
 	}
 	kmsCAFileEnvs = []string{
 		envKMSCAFile,
+	}
+	kmsRegionId = []string{
+		envKMSRegionId,
 	}
 )
 
@@ -40,6 +45,14 @@ func GetKMSPassword() string {
 
 func GetKMSCAFile() string {
 	return getEnvsValue(kmsCAFileEnvs)
+}
+
+func GetKMSRegionId() string {
+	regionId := getEnvsValue(kmsRegionId)
+	if regionId == "" {
+		return defaultRegionId
+	}
+	return regionId
 }
 
 func getEnvsValue(keys []string) string {
