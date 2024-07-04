@@ -3,6 +3,8 @@ package sm
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
+	"fmt"
 	"github.com/alibabacloud-go/tea/tea"
 	dedicatedkmsopenapi "github.com/aliyun/alibabacloud-dkms-gcs-go-sdk/openapi"
 	dedicatedkmssdk "github.com/aliyun/alibabacloud-dkms-gcs-go-sdk/sdk"
@@ -51,16 +53,16 @@ func ParseCertificates(keyStr string) ([]*x509.Certificate, error) {
 	return certs, nil
 }
 
-func SwitchKeySpec(kmsKeySpec string) plugin.KeySpec {
+func SwitchKeySpec(kmsKeySpec string) (plugin.KeySpec, error) {
 	switch kmsKeySpec {
 	case KMS_RSA_2048:
-		return plugin.KeySpecRSA2048
+		return plugin.KeySpecRSA2048, nil
 	case KMS_RSA_3072:
-		return plugin.KeySpecRSA3072
+		return plugin.KeySpecRSA3072, nil
 	case KMS_RSA_4096:
-		return plugin.KeySpecRSA4096
+		return plugin.KeySpecRSA4096, nil
 	case KMS_EC_P256:
-		return plugin.KeySpecEC256
+		return plugin.KeySpecEC256, nil
 	}
-	return ""
+	return "", errors.New(fmt.Sprintf("unsupport key spec %s", kmsKeySpec))
 }

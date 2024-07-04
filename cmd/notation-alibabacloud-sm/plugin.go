@@ -18,6 +18,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"github.com/AliyunContainerService/ack-ram-tool/pkg/ctl/common"
 	"github.com/AliyunContainerService/notation-alibabacloud-secret-manager/internal/log"
 	"github.com/AliyunContainerService/notation-alibabacloud-secret-manager/internal/sm"
@@ -82,10 +83,15 @@ func (p *AlibabaCloudSecretManagerPlugin) DescribeKey(_ context.Context, req *pl
 		return nil, err
 	}
 	keyResult = response
-	keySpec := keyResult.Body.KeyMetadata.KeySpec
+	smKeySpec := keyResult.Body.KeyMetadata.KeySpec
+	fmt.Printf("alibaba cloud secret manager key spec is %s\n", smKeySpec)
+	keySpec, err := sm.SwitchKeySpec(tea.StringValue(smKeySpec))
+	if err != nil {
+		return nil, err
+	}
 	return &plugin.DescribeKeyResponse{
 		KeyID:   req.KeyID,
-		KeySpec: sm.SwitchKeySpec(tea.ToString(keySpec)),
+		KeySpec: keySpec,
 	}, nil
 }
 
@@ -142,7 +148,7 @@ func (p *AlibabaCloudSecretManagerPlugin) GenerateSignature(_ context.Context, r
 		return nil, err
 	}
 
-	certChain, err := sm.ParseCertificates(tea.ToString(publicKeyResponse.PublicKey))
+	certChain, err := sm.ParseCertificates(tea.StringValue(publicKeyResponse.PublicKey))
 	if err != nil {
 		log.Logger.Errorf("Failed to parse public key response, err %v", err)
 		return nil, err
