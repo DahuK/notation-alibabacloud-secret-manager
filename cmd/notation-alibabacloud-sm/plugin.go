@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AliyunContainerService/ack-ram-tool/pkg/ctl/common"
+	"github.com/AliyunContainerService/notation-alibabacloud-secret-manager/internal/crypto"
 	"github.com/AliyunContainerService/notation-alibabacloud-secret-manager/internal/log"
 	"github.com/AliyunContainerService/notation-alibabacloud-secret-manager/internal/sm"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
@@ -33,6 +34,7 @@ import (
 
 const (
 	PluginName = "notation"
+	CaCerts = "ca_certs"
 )
 
 type AlibabaCloudSecretManagerPlugin struct {
@@ -138,21 +140,40 @@ func (p *AlibabaCloudSecretManagerPlugin) GenerateSignature(_ context.Context, r
 		log.Logger.Errorf("Failed to sign with key %s, err %v", req.KeyID, err)
 		return nil, err
 	}
+	log.Logger.Infof("sign response is %s", signResponse.String())
+	var certChain []*x509.Certificate
+	if caCertsPath, ok := req.PluginConfig[CaCerts]; ok {
+		caCertPEMBlock, err := os.ReadFile(caCertsPath)
+		if err != nil {
+			log.Logger.Errorf("Failed to read ca_certs from %s, err %v", caCertsPath, err)
+			return nil, err
+		}
+		certChain, err = crypto.ParseCertificates(caCertPEMBlock)
+		if err != nil {
+			log.Logger.Errorf("Failed to parse ca_certs from %s, err %v", caCertsPath, err)
+			return nil, err
+		}
+	}else{
+		//getPublicKeyRequest := &dkms.GetPublicKeyRequest{
+		//	KeyId: tea.String(req.KeyID),
+		//}
+		//publicKeyResponse, err := p.DedicatedClient.GetPublicKeyWithOptions(getPublicKeyRequest, runtimeOptions)
+		//if err != nil {
+		//	log.Logger.Errorf("Failed to get public key from KMS service, err %v", err)
+		//	return nil, err
+		//}
+		//log.Logger.Infof("public key response is %s", tea.StringValue(publicKeyResponse.PublicKey))
+		//
+		//certChain, err := sm.ParseCertificates(tea.StringValue(publicKeyResponse.PublicKey))
+		//if err != nil {
+		//	log.Logger.Errorf("Failed to parse public key response, err %v", err)
+		//	return nil, err
+		//}
 
-	getPublicKeyRequest := &dkms.GetPublicKeyRequest{
-		KeyId: tea.String(req.KeyID),
-	}
-	publicKeyResponse, err := p.DedicatedClient.GetPublicKeyWithOptions(getPublicKeyRequest, runtimeOptions)
-	if err != nil {
-		log.Logger.Errorf("Failed to get public key from KMS service, err %v", err)
-		return nil, err
+		log.Logger.Errorf("Can not find ca_certs in plugin-config")
+		return nil, errors.New("No ca_certs parameter given in plugin-config")
 	}
 
-	certChain, err := sm.ParseCertificates(tea.StringValue(publicKeyResponse.PublicKey))
-	if err != nil {
-		log.Logger.Errorf("Failed to parse public key response, err %v", err)
-		return nil, err
-	}
 	// build raw cert chain
 	rawCertChain := make([][]byte, 0, len(certChain))
 	for _, cert := range certChain {
