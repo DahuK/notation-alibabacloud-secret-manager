@@ -79,7 +79,7 @@ func GetCertDataFromKey(dkmsClient *dedicatedkmssdk.Client, pub *rsa.PublicKey, 
 		client:    dkmsClient,              //kms client
 		keyId:     keyId,                   //kms instance asymmetric key Id
 		publicKey: pub,                     //kms instance asymmetric public key
-		algorithm: KMS_ALG_RSA_PSS_SHA_256, //kms instance signing algorithm
+		algorithm: KMS_ALG_RSA_PKCS1_SHA_256, //kms instance signing algorithm
 	}
 
 	serialNum, err := genSerialNum()
@@ -95,13 +95,14 @@ func GetCertDataFromKey(dkmsClient *dedicatedkmssdk.Client, pub *rsa.PublicKey, 
 		NotBefore:    time.Now(),
 		NotAfter:     time.Now().Add(365 * 24 * time.Hour), // Valid for 1 year
 		IsCA:         false,
-		KeyUsage:     x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		KeyUsage:     x509.KeyUsageDigitalSignature,
 	}
 
+	
 	// Create the certificate
 	certBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, pub, priv)
 	if err != nil {
-		log.Logger.Errorf("Failed to generate certificated from key %s, err %v", keyId, err)
+		log.Logger.Errorf("Failed to generate certificate from key %s, err %v", keyId, err)
 		return nil, err
 	}
 	return certBytes, nil
