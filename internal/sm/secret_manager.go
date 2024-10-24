@@ -65,7 +65,7 @@ func genSerialNum() (*big.Int, error) {
 	return serialNum, nil
 }
 
-func GetCertDataFromKey(dkmsClient *dedicatedkmssdk.Client, pub *rsa.PublicKey, keyId string) ([]byte, error) {
+func GetCertDataFromKey(dkmsClient *dedicatedkmssdk.Client, pub *rsa.PublicKey, keyId, signAlg string) ([]byte, error) {
 	//init csr subject
 	subject := pkix.Name{
 		Country:            []string{"CN"},
@@ -73,13 +73,20 @@ func GetCertDataFromKey(dkmsClient *dedicatedkmssdk.Client, pub *rsa.PublicKey, 
 		OrganizationalUnit: []string{"Ack"},
 		CommonName:         NOTATION_CN,
 	}
+	// KMS service support algorithm: RSA_PSS_SHA_256 | RSA_PKCS1_SHA_256
+	templateSignAlg := x509.SHA256WithRSA
+	if signAlg == KMS_ALG_RSA_PSS_SHA_256 {
+		templateSignAlg = x509.SHA256WithRSAPSS
+	} else {
+		signAlg = KMS_ALG_RSA_PKCS1_SHA_256
+	}
 
 	//Create kms service signer object
 	priv := &KmsPrivateKeySigner{
-		client:    dkmsClient,              //kms client
-		keyId:     keyId,                   //kms instance asymmetric key Id
-		publicKey: pub,                     //kms instance asymmetric public key
-		algorithm: KMS_ALG_RSA_PKCS1_SHA_256, //kms instance signing algorithm
+		client:    dkmsClient, //kms client
+		keyId:     keyId,      //kms instance asymmetric key Id
+		publicKey: pub,        //kms instance asymmetric public key
+		algorithm: signAlg,    //kms instance signing algorithm
 	}
 
 	serialNum, err := genSerialNum()
@@ -90,15 +97,15 @@ func GetCertDataFromKey(dkmsClient *dedicatedkmssdk.Client, pub *rsa.PublicKey, 
 
 	// Create a new certificate template
 	template := x509.Certificate{
-		SerialNumber: serialNum,
-		Subject:      subject,
-		NotBefore:    time.Now(),
-		NotAfter:     time.Now().Add(365 * 24 * time.Hour), // Valid for 1 year
-		IsCA:         false,
-		KeyUsage:     x509.KeyUsageDigitalSignature,
+		SerialNumber:       serialNum,
+		Subject:            subject,
+		NotBefore:          time.Now(),
+		NotAfter:           time.Now().Add(365 * 24 * time.Hour), // Valid for 1 year
+		IsCA:               false,
+		KeyUsage:           x509.KeyUsageDigitalSignature,
+		SignatureAlgorithm: templateSignAlg,
 	}
 
-	
 	// Create the certificate
 	certBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, pub, priv)
 	if err != nil {
