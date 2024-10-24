@@ -35,7 +35,6 @@ import (
 const (
 	PluginName = "notation"
 	CaCerts    = "ca_certs"
-	SignAlg    = "sign_algorithm"
 )
 
 type AlibabaCloudSecretManagerPlugin struct {
@@ -168,7 +167,7 @@ func (p *AlibabaCloudSecretManagerPlugin) GenerateSignature(_ context.Context, r
 			return nil, err
 		}
 		//get cert data based on the given key id
-		certData, err := sm.GetCertDataFromKey(p.DedicatedClient, pub, req.KeyID, req.PluginConfig[SignAlg])
+		certData, err := sm.GetCertDataFromKey(p.DedicatedClient, pub, req.KeyID)
 		if err != nil {
 			log.Logger.Errorf("Failed to parse ca_certs from %s, err %v", caCertsPath, err)
 			return nil, err
