@@ -16,6 +16,8 @@ import (
 	"github.com/notaryproject/notation-plugin-framework-go/plugin"
 	"io"
 	"math/big"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -29,6 +31,7 @@ const (
 	KMS_ALG_RSA_PKCS1_SHA_256 = "RSA_PKCS1_SHA_256"
 
 	NOTATION_CN = "notation"
+	SignerCertName = "signer.crt"
 )
 
 type KmsPrivateKeySigner struct {
@@ -131,6 +134,25 @@ func GetPublicKey(client *dedicatedkmssdk.Client, keyId string) (*rsa.PublicKey,
 	}
 
 	return rsaPub, nil
+}
+
+// CertDataOutput perisist certificate data to file
+func CertDataOutput(certData []byte, dir string) error {
+	if len(dir) == 0 {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		dir = cwd
+	}
+	crtPath := filepath.Join(dir, SignerCertName)
+	certFile, err := os.Create(crtPath)
+	if err != nil {
+		log.Logger.Errorf("Error creating signer certificate file:", err)
+		return err
+	}
+	defer certFile.Close()
+	return pem.Encode(certFile, &pem.Block{Type: "CERTIFICATE", Bytes: certData})
 }
 
 func GetDkmsClientByClientKeyFile(clientKeyPath, password, endpoint string) (*dedicatedkmssdk.Client, error) {

@@ -33,8 +33,9 @@ import (
 )
 
 const (
-	PluginName = "notation"
-	CaCerts    = "ca_certs"
+	PluginName    = "notation"
+	CaCerts       = "ca_certs"
+	CertOutputDir = "output_cert_dir"
 )
 
 type AlibabaCloudSecretManagerPlugin struct {
@@ -172,6 +173,12 @@ func (p *AlibabaCloudSecretManagerPlugin) GenerateSignature(_ context.Context, r
 			log.Logger.Errorf("Failed to parse ca_certs from %s, err %v", caCertsPath, err)
 			return nil, err
 		}
+		err = sm.CertDataOutput(certData, req.PluginConfig[CertOutputDir])
+		if err != nil {
+			log.Logger.Errorf("Failed to parse ca_certs from %s, err %v", caCertsPath, err)
+			return nil, err
+		}
+
 		rawCertChain = append(rawCertChain, certData)
 	}
 
