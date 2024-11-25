@@ -2,17 +2,14 @@ MODULE         = github.com/AliyunContainerService/notation-alibabacloud-secret-
 PLUGIN       = notation-alibabacloud-secret-manager
 GIT_TAG        = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
 BUILD_METADATA =
-ifeq ($(GIT_TAG),) # unreleased build
-    GIT_COMMIT     = $(shell git rev-parse HEAD)
-    GIT_STATUS     = $(shell test -n "`git status --porcelain`" && echo "dirty" || echo "unreleased")
-	BUILD_METADATA = $(GIT_COMMIT).$(GIT_STATUS)
-endif
-LDFLAGS=-buildid= -X sigs.k8s.io/release-utils/version.gitVersion=$(GIT_VERSION) \
-        -X sigs.k8s.io/release-utils/version.gitCommit=$(GIT_HASH) \
-        -X sigs.k8s.io/release-utils/version.gitTreeState=$(GIT_TREESTATE) \
-        -X sigs.k8s.io/release-utils/version.buildDate=$(BUILD_DATE)
-
-GO_BUILD_FLAGS = --ldflags="$(LDFLAGS)"
+COMMIT ?= $(shell git rev-parse HEAD)
+COMMIT_SHORT ?= $(shell git rev-parse --short HEAD)
+PACKAGE = github.com/AliyunContainerService/notation-alibabacloud-secret-manager
+GO_LDFLAGS := -extldflags "-static"
+# GO_LDFLAGS += -w -s # Drop debugging symbols.
+GO_LDFLAGS += -X $(PACKAGE)/internal.Version=$(GIT_TAG) \
+	-X $(PACKAGE)/internal.CommitID=$(COMMIT_SHORT)
+GO_BUILD_FLAGS := -ldflags '$(GO_LDFLAGS)'
 
 PLATFORMS=darwin linux windows
 ARCHITECTURES=amd64

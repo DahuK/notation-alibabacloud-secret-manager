@@ -19,17 +19,19 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"os"
+
 	"github.com/AliyunContainerService/ack-ram-tool/pkg/ctl/common"
 	"github.com/AliyunContainerService/notation-alibabacloud-secret-manager/internal/crypto"
 	"github.com/AliyunContainerService/notation-alibabacloud-secret-manager/internal/log"
 	"github.com/AliyunContainerService/notation-alibabacloud-secret-manager/internal/sm"
+	"github.com/AliyunContainerService/notation-alibabacloud-secret-manager/internal/version"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	kms "github.com/alibabacloud-go/kms-20160120/v3/client"
 	"github.com/alibabacloud-go/tea/tea"
 	dedicatedkmsopenapiutil "github.com/aliyun/alibabacloud-dkms-gcs-go-sdk/openapi-util"
 	dkms "github.com/aliyun/alibabacloud-dkms-gcs-go-sdk/sdk"
 	"github.com/notaryproject/notation-plugin-framework-go/plugin"
-	"os"
 )
 
 const (
@@ -223,7 +225,7 @@ func (p *AlibabaCloudSecretManagerPlugin) GetMetadata(_ context.Context, _ *plug
 		Name:                      "alibabacloud.secretmanager.plugin",
 		Description:               "Alibaba Cloud Secret Manager signer plugin for Notation",
 		URL:                       "https://example.com/notation/plugin",
-		Version:                   "0.0.1",
+		Version:                   version.Version,
 		Capabilities: []plugin.Capability{
 			plugin.CapabilitySignatureGenerator,
 			plugin.CapabilityTrustedIdentityVerifier},

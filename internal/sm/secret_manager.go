@@ -9,16 +9,17 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/AliyunContainerService/notation-alibabacloud-secret-manager/internal/log"
-	"github.com/alibabacloud-go/tea/tea"
-	dedicatedkmsopenapi "github.com/aliyun/alibabacloud-dkms-gcs-go-sdk/openapi"
-	dedicatedkmssdk "github.com/aliyun/alibabacloud-dkms-gcs-go-sdk/sdk"
-	"github.com/notaryproject/notation-plugin-framework-go/plugin"
 	"io"
 	"math/big"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/AliyunContainerService/notation-alibabacloud-secret-manager/internal/log"
+	"github.com/alibabacloud-go/tea/tea"
+	dedicatedkmsopenapi "github.com/aliyun/alibabacloud-dkms-gcs-go-sdk/openapi"
+	dedicatedkmssdk "github.com/aliyun/alibabacloud-dkms-gcs-go-sdk/sdk"
+	"github.com/notaryproject/notation-plugin-framework-go/plugin"
 )
 
 const (
@@ -30,7 +31,7 @@ const (
 	KMS_ALG_RSA_PSS_SHA_256   = "RSA_PSS_SHA_256"
 	KMS_ALG_RSA_PKCS1_SHA_256 = "RSA_PKCS1_SHA_256"
 
-	NOTATION_CN = "notation"
+	NOTATION_CN    = "notation"
 	SignerCertName = "signer.crt"
 )
 
