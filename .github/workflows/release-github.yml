@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        go-version: ['1.20']
+        go-version: ['1.21']
       fail-fast: true
     steps:
       - name: Checkout
@@ -31,7 +31,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.21'
         env:
           GOPATH: ${{ env.HOME }}
       - name: Set GoReleaser Previous Tag To Be Last Non Weekly Release
@@ -56,30 +56,30 @@ jobs:
 
           checksum_file=$(echo "$ARTIFACTS" | jq -r '.[] | select (.type=="Checksum") | .path')
           echo "hashes=$(cat $checksum_file | base64 -w0)" >> "$GITHUB_OUTPUT"
-      - uses: 'mozillazg/alibabacloud-oidc-auth@v1'
-        with:
-          role-arn-to-assume: '${{ secrets.ALIBABA_CLOUD_RAM_ROLE_ARN }}'
-          oidc-provider-arn: '${{ secrets.ALIBABA_CLOUD_RAM_OIDC_ARN }}'
-          export-environment-variables: 'true'
-      - run: |
-          set -e
-          cd ci/ossutil && go build && \
-            chmod +x ossutil && cp ossutil ../../cputil && cd ../../
-          ./cputil --endpoint=oss-cn-hangzhou.aliyuncs.com \
-                   --bucket '${{ secrets.OSS_BUCKET_NAME }}' \
-                   --objectdir '${{ secrets.OSS_OBJECT_DIR }}/${{ github.ref_name }}' \
-                   dist/notation-alibabacloud-secret-manager*.tar.gz dist/checksums.txt
+#      - uses: 'mozillazg/alibabacloud-oidc-auth@v1'
+#        with:
+#          role-arn-to-assume: '${{ secrets.ALIBABA_CLOUD_RAM_ROLE_ARN }}'
+#          oidc-provider-arn: '${{ secrets.ALIBABA_CLOUD_RAM_OIDC_ARN }}'
+#          export-environment-variables: 'true'
+#      - run: |
+#          set -e
+#          cd ci/ossutil && go build && \
+#            chmod +x ossutil && cp ossutil ../../cputil && cd ../../
+#          ./cputil --endpoint=oss-cn-hangzhou.aliyuncs.com \
+#                   --bucket '${{ secrets.OSS_BUCKET_NAME }}' \
+#                   --objectdir '${{ secrets.OSS_OBJECT_DIR }}/${{ github.ref_name }}' \
+#                   dist/notation-alibabacloud-secret-manager*.tar.gz dist/checksums.txt
 
-    provenance:
-      needs: [build]
-      uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.6.0
-      with:
-        base64-subjects: ${{ needs.build.outputs.hashes}}
-        compile-generator: true # Build the generator from source.
-        # Set private-repository to true for private repositories. Note that the repository name is
-        # uploaded as part of the transparency log entry on the public Rekor instance (rekor.sigstore.dev).
-        private-repository: false
-      permissions:
-        actions: read # To read the workflow path.
-        id-token: write # To sign the provenance.
-        contents: write # To add assets to a release.
+  provenance:
+    needs: [build]
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.6.0
+    with:
+      base64-subjects: ${{ needs.build.outputs.hashes}}
+      compile-generator: true # Build the generator from source.
+      # Set private-repository to true for private repositories. Note that the repository name is
+      # uploaded as part of the transparency log entry on the public Rekor instance (rekor.sigstore.dev).
+      private-repository: false
+    permissions:
+      actions: read # To read the workflow path.
+      id-token: write # To sign the provenance.
+      contents: write # To add assets to a release.
