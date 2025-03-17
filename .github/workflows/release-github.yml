@@ -10,6 +10,10 @@ permissions:
 
 jobs:
   build:
+    outputs:
+      hashes: ${{ steps.binary.outputs.hashes }}
+      image: ${{ steps.image.outputs.name }}
+      digest: ${{ steps.image.outputs.digest }}
     permissions:
       id-token: write # This is required for requesting the JWT
       contents: write  # for goreleaser/goreleaser-action to create a GitHub release
@@ -43,6 +47,15 @@ jobs:
         env:
           GOPATH: ${{ env.HOME }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate binary hashes
+        id: binary
+        env:
+          ARTIFACTS: "${{ steps.goreleaser.outputs.artifacts }}"
+        run: |
+          set -euo pipefail
+
+          checksum_file=$(echo "$ARTIFACTS" | jq -r '.[] | select (.type=="Checksum") | .path')
+          echo "hashes=$(cat $checksum_file | base64 -w0)" >> "$GITHUB_OUTPUT"
       - uses: 'mozillazg/alibabacloud-oidc-auth@v1'
         with:
           role-arn-to-assume: '${{ secrets.ALIBABA_CLOUD_RAM_ROLE_ARN }}'
@@ -56,3 +69,17 @@ jobs:
                    --bucket '${{ secrets.OSS_BUCKET_NAME }}' \
                    --objectdir '${{ secrets.OSS_OBJECT_DIR }}/${{ github.ref_name }}' \
                    dist/notation-alibabacloud-secret-manager*.tar.gz dist/checksums.txt
+
+    provenance:
+      needs: [build]
+      uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.6.0
+      with:
+        base64-subjects: ${{ needs.build.outputs.hashes}}
+        compile-generator: true # Build the generator from source.
+        # Set private-repository to true for private repositories. Note that the repository name is
+        # uploaded as part of the transparency log entry on the public Rekor instance (rekor.sigstore.dev).
+        private-repository: false
+      permissions:
+        actions: read # To read the workflow path.
+        id-token: write # To sign the provenance.
+        contents: write # To add assets to a release.
